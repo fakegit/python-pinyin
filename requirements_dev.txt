@@ -2,7 +2,7 @@ argparse
 bumpversion
 mypy
 pre-commit
-pygments>=2.7.4 # not directly required, pinned by Snyk to avoid a vulnerability
+pygments>=2.20.0 # not directly required, pinned by Snyk to avoid a vulnerability
 pytest
 pytest-cov
 pytest-random-order
