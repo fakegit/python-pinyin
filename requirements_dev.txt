@@ -9,4 +9,4 @@ pytest-random-order
 Sphinx>=3.0.4
 tox
 twine
-wheel>=0.21
+wheel>=0.47.0
