@@ -12,7 +12,7 @@ Based on `hotoo/pinyin <https://github.com/hotoo/pinyin>`__
 * GitHub: https://github.com/mozillazg/python-pinyin
 * License: MIT license
 * PyPI: https://pypi.org/project/pypinyin
-* Python version: 2.7, pypy, pypy3, 3.4, 3.5, 3.6, 3.7, 3.8
+* Python version: 2.7, pypy, pypy3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, 3.14, 3.15
 
 .. contents::
 
@@ -32,6 +32,12 @@ Install
 .. code-block:: bash
 
     $ pip install pypinyin
+
+Install with `uv`:
+
+.. code-block:: bash
+
+    $ uv add pypinyin
 
 
 Usage cases
@@ -165,11 +171,15 @@ Related Projects
 * `hotoo/pinyin`__: A tool for converting Chinese characters to pinyin, Node.js/JavaScript version.
 * `mozillazg/go-pinyin`__: A tool for converting Chinese characters to pinyin, Go version.
 * `mozillazg/rust-pinyin`__: A tool for converting Chinese characters to pinyin, Rust version.
+* `wolfgitpr/cpp-pinyin`__: A tool for converting Chinese characters to pinyin, Cpp version.
+* `wolfgitpr/csharp-pinyin`__: A tool for converting Chinese characters to pinyin, C# version.
 
 
 __ https://github.com/hotoo/pinyin
 __ https://github.com/mozillazg/go-pinyin
 __ https://github.com/mozillazg/rust-pinyin
+__ https://github.com/wolfgitpr/cpp-pinyin
+__ https://github.com/wolfgitpr/csharp-pinyin
 
 
 .. |Build| image:: https://img.shields.io/circleci/project/github/mozillazg/python-pinyin/master.svg

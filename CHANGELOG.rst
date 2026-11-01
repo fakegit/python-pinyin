@@ -2,6 +2,194 @@ Changelog
 ---------
 
 
+`0.55.0`_ (2025-07-20)
++++++++++++++++++++++++++
+
+* **[New]** 新增 ``Style.BRAILLE_MAINLAND`` 和 ``Style.BRAILLE_MAINLAND_TONE`` 支持中国内地盲文风格
+  (via `#348`_ Thanks `@oxygen-dioxide`_ ) 。
+* **[Improved]** 使用 `phrase-pinyin-data`_ v0.19.0 的词语拼音数据。
+* **[Improved]** 使用 `pinyin-data`_ v0.15.0 的拼音数据。
+* **[Fixed]** 优化内置分词，解决词语切分有误导致的拼音有误问题。 Fixed `#347`_ 。
+
+
+
+`0.54.0`_ (2025-03-30)
++++++++++++++++++++++++++
+
+* **[New]** 新增当 ``errors`` 参数被设置为 ``exception`` 时，将在未找到拼音时抛出异常 ``PinyinNotFoundException`` 。
+
+    .. code-block:: python
+
+        >>> from pypinyin import pinyin
+        >>> pinyin('你好☆☆', errors='exception')
+        Traceback (most recent call last):
+            ...
+        pypinyin.exceptions.PinyinNotFoundException: No pinyin found for character "☆☆"
+
+* **[New]** 新增 ``Style.GWOYEU`` 支持国语罗马字 (via `#343`_ Thanks `@0xis-cn`_ ) 。
+* **[Improved]** 使用 `phrase-pinyin-data`_ v0.18.0 的词语拼音数据。
+
+
+`0.53.0`_ (2024-09-15)
++++++++++++++++++++++++++
+
+* **[New]** 内置对 pyinstaller 打包的支持，
+  避免使用 pyinstaller 打包时需要额外处理类似 ``no such file or dictionary: pinyin_dict.json`` 错误的问题。
+  （ **未增加新的依赖包** ，仅通过在源码中增加 __pyinstaller 目录，
+  支持使用 pyinstaller 打包依赖了 pypinyin 的项目时自动打包 v0.52.0 版本新引入的 json 文件）
+  via `#329`_ Thanks `@xushengj`_ , 详见 `#326`_ 。
+
+
+
+`0.52.0`_ (2024-08-04)
++++++++++++++++++++++++++
+
+* **[Changed]** 改为运行时从内置的 json 文件中读取单字和词语拼音数据（之前是从内置的 dict 类型的变量中读取），
+  缓解 Python 3.12 环境中存在的性能劣化问题 (via `#324`_ Thanks `@serfend`_ ) 详见 `#319`_ `#322`_  。
+  主要解决 Python 3.12 环境中存在的如下问题（非 pypinyin 自身 bug 导致。其他 Python 版本环境中无类似问题）：
+
+  * 在 VSCode 中使用 debugpy 调试时， ``import pypinyin`` 操作需要耗时 10 分钟左右。
+  * 运行 ``py.test --cov`` 命令时，pypinyin 相关代码会卡住很长一段时间。
+
+
+
+`0.51.0`_ (2024-03-10)
++++++++++++++++++++++++++
+
+* **[New]** 新增一个用于转换拼音风格的命令行辅助工具::
+
+    $ python -m pypinyin.tools.toneconvert to-tone 'zhong4 xin1'
+    zhòng xīn
+
+    $ python -m pypinyin.tools.toneconvert to-tone2 'zhòng xīn'
+    zho4ng xi1n
+
+    $ python -m pypinyin.tools.toneconvert to-tone3 'zhòng xīn'
+    zhong4 xin1
+
+    $ python -m pypinyin.tools.toneconvert to-normal 'zhòng xīn'
+    zhong xin
+
+* **[New]** ``pypinyin`` 命令行工具支持接受空格间隔的多个汉字词语作为输入（无需引号包裹）(via `#318`_ Thanks `@Freed-Wu`_) ::
+
+      # 老版本
+      $ pypinyin 我 是 小明
+      pypinyin: error: unrecognized arguments: 是 小明
+
+      # 新版本
+      $ pypinyin 我 是 小明
+      wǒ
+      shì
+      xiǎo míng
+
+* **[Improved]** 使用 `phrase-pinyin-data`_ v0.17.0 的词语拼音数据。
+
+
+`0.50.0`_ (2023-12-11)
++++++++++++++++++++++++++
+
+* **[Improved]** 使用 `phrase-pinyin-data`_ v0.16.0 的词语拼音数据。
+* **[Improved]** 使用 `pinyin-data`_ v0.14.0 的拼音数据。
+
+
+`0.49.0`_ (2023-05-14)
++++++++++++++++++++++++++
+
+* **[Improved]** 使用 `phrase-pinyin-data`_ v0.15.0 的词语拼音数据。
+
+
+`0.48.0`_ (2023-01-15)
++++++++++++++++++++++++++
+
+* **[Bugfixed]** 修复 ``pypinyin.contrib.tone_convert`` 中 ``to_`` 开头的转换函数
+  没有正确处理输入的拼音包含 ``5`` 的场景（当包含 ``5`` 时会导致返回的格式不符合函数预期的返回格式）
+  以及修复没有正确处理部分拼音中的 ``ü`` 或 ``v`` 的问题
+  （当 ``v_to_u=False`` 时返回结果需要将 ``ü`` 替换为 ``v``） Fixed `#290`_ :
+
+  .. code-block:: python
+
+      # 修复前
+      >>> to_tone('lve')
+      'lve'
+      >>> to_tone2('lün5')
+      'lv5n'
+      >>> to_tone3('lün5')
+      'lv5n'
+      >>> to_tone2('lvn5')
+      'lv5n'
+      >>> to_tone3('lvn5')
+      'lv5n'
+
+      # 修复后
+      >>> to_tone('lve')
+      'lüe'
+      >>> to_tone2('lün5')
+      'lvn'
+      >>> to_tone3('lün5')
+      'lvn'
+      >>> to_tone2('lvn5')
+      'lvn'
+      >>> to_tone3('lvn5')
+      'lvn'
+      >>> to_tone2('lvn5', v_to_u=True)
+      'lün'
+      >>> to_tone3('lvn5', v_to_u=True)
+      'lün'
+      >>> to_tone2('lvn', neutral_tone_with_five=True)
+      'lv5n'
+      >>> to_tone3('lvn', neutral_tone_with_five=True)
+      'lvn5'
+
+* **[Bugfixed]** 修复 ``Style.BOPOMOFO`` 风格下未处理 ``ê`` 的问题。Fixed `#291`_
+* **[Improved]** 使用 `phrase-pinyin-data`_ v0.14.0 的词语拼音数据。
+
+
+`0.47.1`_ (2022-08-21)
++++++++++++++++++++++++++
+
+* **[Bugfixed]** 修复在处理既没有声母也没有韵母的拼音时，指定 neutral_tone_with_five=True 会返回
+  ``5`` 作为拼音的问题（`#284`_）:
+
+  .. code-block:: python
+
+      # 修复前
+      >>> lazy_pinyin('嗯', style=Style.FINALS_TONE3, neutral_tone_with_five=True)
+      ['5']
+      # 修复后
+      >>> lazy_pinyin('嗯', style=Style.FINALS_TONE3, neutral_tone_with_five=True)
+      ['']
+
+
+`0.47.0`_ (2022-07-30)
++++++++++++++++++++++++++
+
+* **[New]** **[Changed]** 自定义拼音风格的回调函数新增关键字参数 ``han`` ，用于接收对应的原始汉字:
+
+  .. code-block:: python
+
+        @register('new_style')
+        def new_style_func(pinyin, **kwargs):
+            return kwargs.get('han', '') + pinyin
+
+        pinyin('北京', style='new_style')  # output: [['北běi'], ['京jīng']]
+
+* **[Improved]** 使用 `phrase-pinyin-data`_ v0.13.0 的词语拼音数据。
+* **[Improved]** 使用 `pinyin-data`_ v0.13.0 的拼音数据。
+* **[Bugfixed]** 修复 ``tone_to_tone3`` 函数对空字符串的处理 via `#279`_
+
+
+`0.46.0`_ (2022-02-12)
++++++++++++++++++++++++++
+
+* **[New]** ``pypinyin.contrib.tone_convert`` 模块新增 ``to_finals_tone`` 、``to_finals_tone2``
+  以及 ``to_finals_tone3`` 函数，用于将拼音转换为 ``Style.FINALS_TONE`` 、 ``Style.FINALS_TONE2``
+  以及 ``Style.FINALS_TONE3`` 风格的结果。
+* **[Changed]** 将 ``pypinyin.contrib.tone_convert`` 模块中 ``to_tone2`` 、 ``to_tone3``、
+  ``tone_to_tone2`` 及 ``tone_to_tone3`` 函数的 ``neutral_tone_with_5`` 参数重命名为统一的
+  ``neutral_tone_with_five`` 参数名称，兼容已有代码传入的 ``neutral_tone_with_5`` 参数。建议升级版本后择期修改为
+  使用新的 ``neutral_tone_with_five`` 参数名称。
+
+
 `0.45.0`_ (2022-01-23)
 +++++++++++++++++++++++++
 
@@ -870,10 +1058,28 @@ __ https://github.com/mozillazg/python-pinyin/issues/8
 .. _#251: https://github.com/mozillazg/python-pinyin/issues/251
 .. _#266: https://github.com/mozillazg/python-pinyin/issues/266
 .. _#80: https://github.com/mozillazg/python-pinyin/issues/80
+.. _#284: https://github.com/mozillazg/python-pinyin/issues/284
+.. _#290: https://github.com/mozillazg/python-pinyin/issues/290
+.. _#291: https://github.com/mozillazg/python-pinyin/issues/291
+.. _#319: https://github.com/mozillazg/python-pinyin/issues/319
+.. _#322: https://github.com/mozillazg/python-pinyin/issues/322
+.. _#326: https://github.com/mozillazg/python-pinyin/issues/326
+.. _#347: https://github.com/mozillazg/python-pinyin/issues/347
 .. _#164: https://github.com/mozillazg/python-pinyin/pull/164
 .. _#176: https://github.com/mozillazg/python-pinyin/pull/176
+.. _#279: https://github.com/mozillazg/python-pinyin/pull/279
+.. _#318: https://github.com/mozillazg/python-pinyin/pull/318
+.. _#324: https://github.com/mozillazg/python-pinyin/pull/324
+.. _#329: https://github.com/mozillazg/python-pinyin/pull/329
+.. _#343: https://github.com/mozillazg/python-pinyin/pull/343
+.. _#348: https://github.com/mozillazg/python-pinyin/pull/348
 .. _@hanabi1224: https://github.com/hanabi1224
 .. _@yangwe1: https://github.com/yangwe1
+.. _@Freed-Wu: https://github.com/Freed-Wu
+.. _@serfend: https://github.com/serfend
+.. _@xushengj: https://github.com/xushengj
+.. _@0xis-cn: https://github.com/0xis-cn
+.. _@oxygen-dioxide: https://github.com/oxygen-dioxide
 .. _变调规则: https://en.wikipedia.org/wiki/Standard_Chinese_phonology#Tone_sandhi
 
 .. _0.2.0: https://github.com/mozillazg/python-pinyin/compare/v0.1.0...v0.2.0
@@ -960,3 +1166,14 @@ __ https://github.com/mozillazg/python-pinyin/issues/8
 .. _0.43.0: https://github.com/mozillazg/python-pinyin/compare/v0.42.1...v0.43.0
 .. _0.44.0: https://github.com/mozillazg/python-pinyin/compare/v0.43.0...v0.44.0
 .. _0.45.0: https://github.com/mozillazg/python-pinyin/compare/v0.44.0...v0.45.0
+.. _0.46.0: https://github.com/mozillazg/python-pinyin/compare/v0.45.0...v0.46.0
+.. _0.47.0: https://github.com/mozillazg/python-pinyin/compare/v0.46.0...v0.47.0
+.. _0.47.1: https://github.com/mozillazg/python-pinyin/compare/v0.47.0...v0.47.1
+.. _0.48.0: https://github.com/mozillazg/python-pinyin/compare/v0.47.1...v0.48.0
+.. _0.49.0: https://github.com/mozillazg/python-pinyin/compare/v0.48.0...v0.49.0
+.. _0.50.0: https://github.com/mozillazg/python-pinyin/compare/v0.49.0...v0.50.0
+.. _0.51.0: https://github.com/mozillazg/python-pinyin/compare/v0.50.0...v0.51.0
+.. _0.52.0: https://github.com/mozillazg/python-pinyin/compare/v0.51.0...v0.52.0
+.. _0.53.0: https://github.com/mozillazg/python-pinyin/compare/v0.52.0...v0.53.0
+.. _0.54.0: https://github.com/mozillazg/python-pinyin/compare/v0.53.0...v0.54.0
+.. _0.55.0: https://github.com/mozillazg/python-pinyin/compare/v0.54.0...v0.55.0

@@ -56,8 +56,10 @@ def get_finals(pinyin, strict):
             return finals
         return ''
 
-    # ń, ḿ
-    if not finals and not strict:
+    # ń, ḿ, ńg（嗯 等）：非严格模式下整个音节作为韵母。
+    # 其中 ńg 会被切出声母 n，剩下的 'g' 不是有效韵母，需要特殊处理；
+    # get_initials('ng', strict=False) 仍会返回 'n'，这里与 m/n 的现有行为一致。
+    if not strict and (not finals or pinyin == 'ng'):
         return pinyin
 
     return finals
@@ -84,10 +86,13 @@ def replace_symbol_to_no_symbol(pinyin):
     return RE_NUMBER.sub('', value)
 
 
+# 鼻音: 'm̄', 'ḿ', 'm̀', 'ń', 'ň', 'ǹ' 没有韵母
+_NO_FINALS_SYMBOLS = ('m̄', 'ḿ', 'm̀', 'ń', 'ň', 'ǹ')
+
+
 def has_finals(pinyin):
     """判断是否有韵母"""
-    # 鼻音: 'm̄', 'ḿ', 'm̀', 'ń', 'ň', 'ǹ ' 没有韵母
-    for symbol in ['m̄', 'ḿ', 'm̀', 'ń', 'ň', 'ǹ']:
+    for symbol in _NO_FINALS_SYMBOLS:
         if symbol in pinyin:
             return False
 

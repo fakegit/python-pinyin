@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import pytest
 
-from pypinyin import pinyin, load_phrases_dict
+from pypinyin import pinyin, lazy_pinyin, load_phrases_dict, Style
 from pypinyin.contrib import mmseg
 
 seg_test = mmseg.Seg(mmseg.PrefixSet())
@@ -252,8 +252,7 @@ def test_seg_long():
         '使',
         '留',
         '下',
-        '淡',
-        '红',
+        '淡红',
         '的',
         '血色',
         '和',
@@ -265,8 +264,7 @@ def test_seg_long():
         '。',
         '在',
         '这',
-        '淡',
-        '红',
+        '淡红',
         '的',
         '血色',
         '和',
@@ -411,8 +409,7 @@ def test_seg_long():
                '，',
                '人',
                '类',
-               '永',
-               '远',
+               '永远',
                '只是',
                '一个',
                '天',
@@ -505,8 +502,7 @@ def test_seg_long():
                '滴',
                '也',
                '映',
-               '照',
-               '着',
+               '照着',
                '大海',
                '，',
                '但',
@@ -786,6 +782,79 @@ def test_seg_long():
                '查处',
                '一起',
                '。']
+
+
+@pytest.mark.parametrize(
+    'words,no_non_phrases,expected', [
+        ('银行行长', True, ['银行', '行长']),
+        ('银行行长', False, ['银行行', '长']),
+        ('银行', True, ['银行']),
+        ('银行', False, ['银行']),
+        ('银行行员', True, ['银行行员']),
+        ('银行行员', False, ['银行行员']),
+        ('金融资本', True, ['金', '融', '资', '本']),
+        ('金融资本', False, ['金融资本']),
+        ('金融行业', True, ['金', '融', '行业']),
+        ('金融行业', False, ['金融', '行业']),
+        ('军工', True, ['军', '工']),
+        ('军工', False, ['军', '工']),
+        ('浦发银行', True, ['浦', '发', '银行']),
+        ('浦发银行', False, ['浦', '发', '银行']),
+    ]
+)
+def test_issue_347(words, no_non_phrases, expected):
+    prefix_set = mmseg.PrefixSet()
+    prefix_set.train([
+        '银行', '行长', '银行行员',
+        '金融', '融资', '资本', '金融资本',
+        '行业',
+    ])
+    seg = mmseg.Seg(prefix_set, no_non_phrases=no_non_phrases)
+    assert list(seg.cut(words)) == expected
+
+
+@pytest.mark.parametrize('no_non_phrases', [True, False])
+@pytest.mark.parametrize('text,strict_parts,prefix_parts', [
+    ('甲银行', ['甲', '银行'], ['甲银行']),
+    ('甲乙银行', ['甲', '乙', '银行'], ['甲乙银行']),
+    ('甲银行乙', ['甲', '银行', '乙'], ['甲银行乙']),
+    ('甲银行行长', ['甲', '银行', '行长'], ['甲银行', '行长']),
+    ('甲乙银', ['甲', '乙', '银'], ['甲乙银']),
+    ('甲', ['甲'], ['甲']),
+])
+def test_mmseg_rescans_suffix_after_incomplete_phrase(
+        no_non_phrases, text, strict_parts, prefix_parts):
+    prefix_set = mmseg.PrefixSet()
+    prefix_set.train(['甲银行乙', '甲乙银行丙', '银行', '行长'])
+    seg = mmseg.Seg(prefix_set, no_non_phrases=no_non_phrases)
+    expected = strict_parts if no_non_phrases else prefix_parts
+    assert list(seg.cut(text)) == expected
+
+
+@pytest.mark.parametrize('style', [Style.NORMAL, Style.TONE, Style.TONE3])
+@pytest.mark.parametrize('text,parts', [
+    ('一块石头', ['一', '块', '石头']),
+    ('一文钱难倒', ['一', '文', '钱', '难倒']),
+    ('七返还', ['七', '返还']),
+])
+def test_mmseg_keeps_dictionary_pronunciation_in_suffix(text, parts, style):
+    assert list(mmseg.seg.cut(text)) == parts
+    assert pinyin(text, style=style) == pinyin(parts, style=style)
+    assert lazy_pinyin(text, style=style) == lazy_pinyin(parts, style=style)
+
+
+@pytest.mark.parametrize('text,parts,expected', [
+    ('一块石头', ['一', '块', '石头'], ['yī', 'kuài', 'shí', 'tou']),
+    ('一文钱难倒', ['一', '文', '钱', '难倒'], ['yī', 'wén', 'qián', 'nán', 'dǎo']),
+    ('七返还', ['七', '返还'], ['qī', 'fǎn', 'huán']),
+])
+def test_mmseg_dictionary_pronunciation_values(text, parts, expected):
+    assert list(mmseg.seg.cut(text)) == parts
+    # 末尾追加一个不在词典中的字符，不应改变前面文本的切分结果
+    assert list(mmseg.seg.cut(text + 'X')) == parts + ['X']
+    # 直接断言具体读音，避免用 pinyin(text) 和 pinyin(parts) 互相“自证”
+    assert pinyin(text) == [[x] for x in expected]
+    assert lazy_pinyin(text, style=Style.TONE) == expected
 
 
 if __name__ == '__main__':

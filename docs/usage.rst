@@ -58,6 +58,10 @@
 
       pinyin('你好☆☆', errors='ignore')
       [['nǐ'], ['hǎo']]
+* ``exception`` : 抛出异常 :class:`~pypinyin.exceptions.PinyinNotFoundException` ::
+
+      pinyin('你好☆☆', errors='ignore')
+      [['nǐ'], ['hǎo']]
 * ``replace`` : 替换为去掉 ``\u`` 的 unicode 编码::
 
       pinyin('你好☆☆', errors='replace')
@@ -149,7 +153,7 @@
     In [2]: from pypinyin.style import register
 
     In [3]: @register('kiss')
-       ...: def kiss(pinyin, **kwargs):
+       ...: def kiss(pinyin, **kwargs):     # 必须包含 **kwargs 用于接收未来新增的关键字参数
        ...:     return '😘 {0}'.format(pinyin)
        ...:
 
@@ -212,6 +216,10 @@
 
 命令行工具
 ------------
+
+
+pypinyin
+~~~~~~~~~~~
 
 程序内置了一个命令行工具 ``pypinyin`` :
 
@@ -281,6 +289,34 @@ BOPOMOFO_FIRST     :py:attr:`~pypinyin.Style.BOPOMOFO_FIRST`
 CYRILLIC           :py:attr:`~pypinyin.Style.CYRILLIC`
 CYRILLIC_FIRST     :py:attr:`~pypinyin.Style.CYRILLIC_FIRST`
 ================== =========================================
+
+
+toneconvert
+~~~~~~~~~~~~~
+
+通过 ``python -m pypinyin.tools.toneconvert`` 命令可以运行一个辅助转换拼音风格的工具::
+
+
+    $ python -m pypinyin.tools.toneconvert to-tone 'zhong4 xin1'
+    zhòng xīn
+
+**注意**: 当输入包含多个拼音时，必须使用空格或英文逗号分隔，该工具不支持多个拼音连在一起的输入。
+
+该工具支持的命令如下::
+
+    $ python -m pypinyin.tools.toneconvert -h
+
+    usage: toneconvert.py [-h] {to-normal,to-tone,to-tone2,to-tone3} ...
+
+    options:
+      -h, --help            show this help message and exit
+
+    subcommands:
+      {to-normal,to-tone,to-tone2,to-tone3}
+        to-normal           call pypinyin.contrib.tone_convert.to_normal() with inputs
+        to-tone             call pypinyin.contrib.tone_convert.to_tone() with inputs
+        to-tone2            call pypinyin.contrib.tone_convert.to_tone2() with inputs
+        to-tone3            call pypinyin.contrib.tone_convert.to_tone3() with inputs
 
 
 .. _《汉语拼音方案》: http://www.moe.gov.cn/s78/A19/yxs_left/moe_810/s230/195802/t19580201_186000.html

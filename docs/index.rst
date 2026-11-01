@@ -11,13 +11,13 @@
 
 将汉字转为拼音。可以用于汉字注音、排序、检索(`Russian translation`_) 。
 
-基于 `hotoo/pinyin <https://github.com/hotoo/pinyin>`__ 开发。
+最初版本的代码参考了 `hotoo/pinyin <https://github.com/hotoo/pinyin>`__ 的实现。
 
 * Documentation: http://pypinyin.rtfd.io
 * GitHub: https://github.com/mozillazg/python-pinyin
 * License: MIT license
 * PyPI: https://pypi.org/project/pypinyin
-* Python version: 2.7, pypy, pypy3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9
+* Python version: 2.7, pypy3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, 3.14, 3.15
 
 
 特性

@@ -12,7 +12,7 @@
 * GitHub: https://github.com/mozillazg/python-pinyin
 * License: MIT license
 * PyPI: https://pypi.python.org/pypi/pypinyin
-* Python version: 2.6, 2.7, pypy, 3.3, 3.4, 3.5, 3.6
+* Python version: 2.6, 2.7, pypy, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, 3.14, 3.15
 
 
 Особенности
@@ -91,10 +91,15 @@ Related Projects
 * `hotoo/pinyin`__: Утилита для пиньин конвертации китайских иероглифов  Node.js/JavaScript версия.
 * `mozillazg/go-pinyin`__: Утилита для пиньин конвертации китайских иероглифов Go версия.
 * `mozillazg/rust-pinyin`__: Утилита для пиньин конвертации китайских иероглифов Rust версия.
+* `wolfgitpr/cpp-pinyin`__: Утилита для пиньин конвертации китайских иероглифов Cpp версия.
+* `wolfgitpr/csharp-pinyin`__: Утилита для пиньин конвертации китайских иероглифов C# версия.
+
 
 __ https://github.com/hotoo/pinyin
 __ https://github.com/mozillazg/go-pinyin
 __ https://github.com/mozillazg/rust-pinyin
+__ https://github.com/wolfgitpr/cpp-pinyin
+__ https://github.com/wolfgitpr/csharp-pinyin
 
 
 .. |Build| image:: https://img.shields.io/travis/mozillazg/python-pinyin/master.svg

@@ -9,7 +9,7 @@ from pypinyin.constants import Style
 
 
 TStyle = Style
-TErrors = Union[Callable[[Text], Text], Text]
+TErrors = Union[Callable[[Text], Union[Text, List[Text], List[List[Text]], None]], Text]
 TPinyinResult = List[List[Text]]
 TErrorResult = Union[Text, List[Text], None]
 TNoPinyinResult = Union[TPinyinResult, List[Text], Text, None]
@@ -54,6 +54,11 @@ class DefaultConverter(Converter):
     def post_pinyin(self, han: Text, heteronym: bool,
                     pinyin: TPinyinResult,
                     **kwargs: Any) -> Union[TPinyinResult, None]: ...
+
+    def convert_styles(self, pinyin_list: TPinyinResult,
+                       phrase: Text, style: TStyle, heteronym: bool,
+                       errors: TErrors, strict: bool, **kwargs: Any,
+                       ) -> TPinyinResult: ...
 
     def _phrase_pinyin(self, phrase: Text, style: TStyle, heteronym: bool,
                        errors: TErrors, strict: bool

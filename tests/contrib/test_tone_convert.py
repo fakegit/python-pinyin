@@ -18,7 +18,10 @@ from pypinyin.contrib.tone_convert import (
     to_tone2,
     to_tone3,
     to_initials,
-    to_finals
+    to_finals,
+    to_finals_tone,
+    to_finals_tone2,
+    to_finals_tone3,
 )
 
 
@@ -66,15 +69,20 @@ def test_tone_tone2(pinyin, result):
     assert to_tone2(pinyin) == result
 
 
-@mark.parametrize('pinyin,neutral_tone_with_5,result', [
+@mark.parametrize('pinyin,neutral_tone_with_five,result', [
     ['shang', False, 'shang'],
     ['shang', True, 'sha5ng'],
 ])
-def test_tone_tone2_with_neutral_tone_with_5(
-        pinyin, neutral_tone_with_5, result):
+def test_tone_tone2_with_neutral_tone_with_five(
+        pinyin, neutral_tone_with_five, result):
     assert tone_to_tone2(
-        pinyin, neutral_tone_with_5=neutral_tone_with_5) == result
-    assert to_tone2(pinyin, neutral_tone_with_5=neutral_tone_with_5) == result
+        pinyin, neutral_tone_with_five=neutral_tone_with_five) == result
+    assert tone_to_tone2(
+        pinyin, neutral_tone_with_5=neutral_tone_with_five) == result
+    assert to_tone2(pinyin,
+                    neutral_tone_with_five=neutral_tone_with_five) == result
+    assert to_tone2(pinyin,
+                    neutral_tone_with_5=neutral_tone_with_five) == result
 
     assert tone2_to_tone(result) == pinyin
     assert to_tone(result) == pinyin
@@ -107,16 +115,22 @@ def test_tone_tone3(pinyin, result):
     assert to_tone3(pinyin) == result
 
 
-@mark.parametrize('pinyin,neutral_tone_with_5,result', [
+@mark.parametrize('pinyin,neutral_tone_with_five,result', [
     ['shang', False, 'shang'],
     ['shang', True, 'shang5'],
+    ['', False, ''],
+    ['', True, '']
 ])
-def test_tone_tone3_with_neutral_tone_with_5(
-        pinyin, neutral_tone_with_5, result):
+def test_tone_tone3_with_neutral_tone_with_five(
+        pinyin, neutral_tone_with_five, result):
     assert tone_to_tone3(
-        pinyin, neutral_tone_with_5=neutral_tone_with_5) == result
+        pinyin, neutral_tone_with_five=neutral_tone_with_five) == result
+    assert tone_to_tone3(
+        pinyin, neutral_tone_with_5=neutral_tone_with_five) == result
     assert to_tone3(
-        pinyin, neutral_tone_with_5=neutral_tone_with_5) == result
+        pinyin, neutral_tone_with_five=neutral_tone_with_five) == result
+    assert to_tone3(
+        pinyin, neutral_tone_with_5=neutral_tone_with_five) == result
 
     assert tone3_to_tone(result) == pinyin
     assert to_tone(result) == pinyin
@@ -142,7 +156,6 @@ def test_tone_tone3_with_v_to_u(pinyin, v_to_u, result):
     ['a1', 'a1'],
     ['a', 'a'],
     ['shang', 'shang'],
-    ['sha5ng', 'shang5'],
 ])
 def test_tone2_tone3(pinyin, result):
     assert tone2_to_tone3(pinyin) == result
@@ -233,6 +246,25 @@ def test_tone3_to_tone2_with_v_to_u(pinyin, v_to_u, result):
     assert tone3_to_tone2(pinyin, v_to_u=v_to_u) == result
 
 
+@mark.parametrize('pinyin,result', [
+    ['lv', 'lv'],
+    ['lü', 'lv'],
+    ['lve', 'lve'],
+    ['lüe', 'lve'],
+    ['nv', 'nv'],
+    ['nü', 'nv'],
+    ['nve', 'nve'],
+    ['nüe', 'nve'],
+    ['shang', 'shang'],
+    ['', ''],
+])
+@mark.parametrize('v_to_u', [False, True])
+def test_tone3_to_tone2_neutral_with_v_to_u(pinyin, result, v_to_u):
+    if v_to_u:
+        result = result.replace('v', 'ü')
+    assert tone3_to_tone2(pinyin, v_to_u=v_to_u) == result
+
+
 @mark.parametrize('pinyin,strict,result', [
     ['zhōng', True, 'zh'],
     ['zhōng', False, 'zh'],
@@ -275,9 +307,84 @@ def test_to_initials(pinyin, strict, result):
 
     ['gui', True, False, 'uei'],
     ['gui', False, False, 'ui'],
+
+    # 嗯/呣/唔 等鼻音节：非严格模式下整个 m/n/ng 作为韵母，
+    # 严格模式下没有韵母（保持原有设计）。
+    ['ńg', False, False, 'ng'],
+    ['ňg', False, False, 'ng'],
+    ['ǹg', False, False, 'ng'],
+    ['ng', False, False, 'ng'],
+    ['ńg', True, False, ''],
+    ['ng', True, False, ''],
+    # 控制项：单独的 m/n 行为保持不变。
+    ['ń', False, False, 'n'],
+    ['ḿ', False, False, 'm'],
 ])
 def test_to_finals(pinyin, strict, v_to_u, result):
     assert to_finals(pinyin, strict=strict, v_to_u=v_to_u) == result
+
+
+@mark.parametrize('pinyin,strict,result', [
+    ['zhōng', True, 'ōng'],
+    ['zho1ng', True, 'ōng'],
+    ['zhong1', True, 'ōng'],
+    ['zhōng', False, 'ōng'],
+    ['yū', True, 'ǖ'],
+    ['yu1', True, 'ǖ'],
+    ['yū', False, 'ū'],
+
+    ['ńg', False, 'ńg'],
+    ['ńg', True, ''],
+])
+def test_to_finals_tone(pinyin, strict, result):
+    assert to_finals_tone(pinyin, strict=strict) == result
+
+
+@mark.parametrize('pinyin,strict,v_to_u,neutral_tone_with_five,result', [
+    ['zhōng', True, False, False, 'o1ng'],
+    ['zhong1', True, False, False, 'o1ng'],
+    ['zho1ng', True, False, False, 'o1ng'],
+    ['zhōng', False, False, False, 'o1ng'],
+    ['zhong', False, False, True, 'o5ng'],
+    ['yū', True, False, False, 'v1'],
+    ['yu1', True, False, False, 'v1'],
+    ['yū', True, True, False, 'ü1'],
+    ['yū', False, False, False, 'u1'],
+    ['yū', False, True, False, 'u1'],
+
+    # 没有可标调的元音时，数字放在第一个字符后
+    ['ńg', False, False, False, 'n2g'],
+    ['ńg', True, False, False, ''],
+])
+def test_to_finals_tone2(pinyin, strict, v_to_u,
+                         neutral_tone_with_five, result):
+    assert to_finals_tone2(pinyin, strict=strict, v_to_u=v_to_u,
+                           neutral_tone_with_five=neutral_tone_with_five
+                           ) == result
+
+
+@mark.parametrize('pinyin,strict,v_to_u,neutral_tone_with_five,result', [
+    ['zhōng', True, False, False, 'ong1'],
+    ['zhong1', True, False, False, 'ong1'],
+    ['zho1ng', True, False, False, 'ong1'],
+    ['zhōng', False, False, False, 'ong1'],
+    ['zhong', False, False, True, 'ong5'],
+    ['yū', True, False, False, 'v1'],
+    ['yu1', True, False, False, 'v1'],
+    ['yū', True, True, False, 'ü1'],
+    ['yū', False, False, False, 'u1'],
+    ['yū', False, True, False, 'u1'],
+
+    ['ńg', False, False, False, 'ng2'],
+    ['ňg', False, False, False, 'ng3'],
+    ['ǹg', False, False, False, 'ng4'],
+    ['ńg', True, False, False, ''],
+])
+def test_to_finals_tone3(pinyin, strict, v_to_u, neutral_tone_with_five,
+                         result):
+    assert to_finals_tone3(pinyin, strict=strict, v_to_u=v_to_u,
+                           neutral_tone_with_five=neutral_tone_with_five
+                           ) == result
 
 
 # 所有拼音转换为 tone2 或 tone3 风格后，都可以再转换回原始的拼音
@@ -303,3 +410,148 @@ def test_tone_to_tone2_tone3_to_tone():
         tone3_2 = tone3_to_tone2(tone3)
         assert tone2_to_tone(tone3_2) == py
         assert to_tone(tone3_2) == py
+
+
+@mark.parametrize('input', [
+    'lün',
+    'lvn',
+
+    'lü5n',
+    'lün5',
+
+    'lv5n',
+    'lvn5',
+])
+def test_issue_290_1(input):
+    assert to_normal(input) == 'lvn'
+    assert to_normal(input, v_to_u=True) == 'lün'
+
+    assert to_tone(input) == 'lün'
+
+    assert to_tone2(input) == 'lvn'
+    assert to_tone2(input, neutral_tone_with_five=True) == 'lv5n'
+    assert to_tone2(input, v_to_u=True) == 'lün'
+    assert to_tone2(input, v_to_u=True, neutral_tone_with_five=True) == 'lü5n'
+
+    assert to_tone3(input) == 'lvn'
+    assert to_tone3(input, neutral_tone_with_five=True) == 'lvn5'
+    assert to_tone3(input, v_to_u=True) == 'lün'
+    assert to_tone3(input, v_to_u=True, neutral_tone_with_five=True) == 'lün5'
+
+    assert to_finals(input) == 'vn'
+    assert to_finals(input, v_to_u=True) == 'ün'
+
+    assert to_finals_tone(input) == 'ün'
+
+    assert to_finals_tone2(input) == 'vn'
+    assert to_finals_tone2(input, neutral_tone_with_five=True) == 'v5n'
+    assert to_finals_tone2(input, v_to_u=True) == 'ün'
+    assert to_finals_tone2(input, v_to_u=True,
+                           neutral_tone_with_five=True) == 'ü5n'
+
+    assert to_finals_tone3(input) == 'vn'
+    assert to_finals_tone3(input, neutral_tone_with_five=True) == 'vn5'
+    assert to_finals_tone3(input, v_to_u=True) == 'ün'
+    assert to_finals_tone3(input, v_to_u=True,
+                           neutral_tone_with_five=True) == 'ün5'
+
+
+@mark.parametrize('input', [
+    'lǘ',
+    'lü2',
+    'lv2',
+])
+def test_issue_290_2(input):
+    assert to_normal(input) == 'lv'
+    assert to_normal(input, v_to_u=True) == 'lü'
+
+    assert to_tone(input) == 'lǘ'
+
+    assert to_tone2(input) == 'lv2'
+    assert to_tone2(input, v_to_u=True) == 'lü2'
+
+    assert to_tone3(input) == 'lv2'
+    assert to_tone3(input, v_to_u=True) == 'lü2'
+
+    assert to_finals(input) == 'v'
+    assert to_finals(input, v_to_u=True) == 'ü'
+
+    assert to_finals_tone(input) == 'ǘ'
+
+    assert to_finals_tone2(input) == 'v2'
+    assert to_finals_tone2(input, v_to_u=True) == 'ü2'
+
+    assert to_finals_tone3(input) == 'v2'
+    assert to_finals_tone3(input, v_to_u=True) == 'ü2'
+
+
+@mark.parametrize('input', [
+    'lǘn',
+    'lü2n',
+    'lün2',
+    'lv2n',
+    'lvn2',
+])
+def test_issue_290_3(input):
+    assert to_normal(input) == 'lvn'
+    assert to_normal(input, v_to_u=True) == 'lün'
+
+    assert to_tone(input) == 'lǘn'
+
+    assert to_tone2(input) == 'lv2n'
+    assert to_tone2(input, v_to_u=True) == 'lü2n'
+
+    assert to_tone3(input) == 'lvn2'
+    assert to_tone3(input, v_to_u=True) == 'lün2'
+
+    assert to_finals(input) == 'vn'
+    assert to_finals(input, v_to_u=True) == 'ün'
+
+    assert to_finals_tone(input) == 'ǘn'
+
+    assert to_finals_tone2(input) == 'v2n'
+    assert to_finals_tone2(input, v_to_u=True) == 'ü2n'
+
+    assert to_finals_tone3(input) == 'vn2'
+    assert to_finals_tone3(input, v_to_u=True) == 'ün2'
+
+
+@mark.parametrize('input', [
+    'shang',
+    'sha5ng',
+    'shang5',
+])
+def test_issue_290_4(input):
+    assert to_normal(input) == 'shang'
+    assert to_normal(input, v_to_u=True) == 'shang'
+
+    assert to_tone(input) == 'shang'
+
+    assert to_tone2(input) == 'shang'
+    assert to_tone2(input, neutral_tone_with_five=True) == 'sha5ng'
+    assert to_tone2(input, v_to_u=True) == 'shang'
+    assert to_tone2(input, v_to_u=True,
+                    neutral_tone_with_five=True) == 'sha5ng'
+
+    assert to_tone3(input) == 'shang'
+    assert to_tone3(input, neutral_tone_with_five=True) == 'shang5'
+    assert to_tone3(input, v_to_u=True) == 'shang'
+    assert to_tone3(input, v_to_u=True,
+                    neutral_tone_with_five=True) == 'shang5'
+
+    assert to_finals(input) == 'ang'
+    assert to_finals(input, v_to_u=True) == 'ang'
+
+    assert to_finals_tone(input) == 'ang'
+
+    assert to_finals_tone2(input) == 'ang'
+    assert to_finals_tone2(input, neutral_tone_with_five=True) == 'a5ng'
+    assert to_finals_tone2(input, v_to_u=True) == 'ang'
+    assert to_finals_tone2(input, v_to_u=True,
+                           neutral_tone_with_five=True) == 'a5ng'
+
+    assert to_finals_tone3(input) == 'ang'
+    assert to_finals_tone3(input, neutral_tone_with_five=True) == 'ang5'
+    assert to_finals_tone3(input, v_to_u=True) == 'ang'
+    assert to_finals_tone3(input, v_to_u=True,
+                           neutral_tone_with_five=True) == 'ang5'

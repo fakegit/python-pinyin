@@ -29,15 +29,13 @@ doctest:
 .PHONY: publish
 publish: clean
 	@echo "publish to pypi"
-	python setup.py sdist
-	python setup.py bdist_wheel
+	uv build
 	twine upload dist/*
 
 .PHONY: publish_test
 publish_test: clean
 	@echo "publish to test pypi"
-	python setup.py sdist
-	python setup.py bdist_wheel
+	uv build
 	twine upload --repository test dist/*
 
 .PHONY: docs_html
@@ -49,16 +47,27 @@ docs_serve: docs_html
 	cd docs/_build/html && python -m http.server
 
 .PHONY: gen_data
-gen_data: gen_pinyin_dict gen_phrases_dict
+gen_data: sync_submodule gen_pinyin_dict gen_phrases_dict
 
 .PHONY: gen_pinyin_dict
-gen_pinyin_dict:
-	python gen_pinyin_dict.py pinyin-data/pinyin.txt pypinyin/pinyin_dict.py
+gen_pinyin_dict: sync_submodule
+	python gen_pinyin_dict.py pinyin-data/pinyin.txt pypinyin/legacy/pinyin_dict.py
+	$(MAKE) to_json source=pypinyin/legacy/pinyin_dict.py var=pinyin_dict dst=pypinyin/pinyin_dict.json
 
 .PHONY: gen_phrases_dict
-gen_phrases_dict:
-	python gen_phrases_dict.py phrase-pinyin-data/pinyin.txt pypinyin/phrases_dict_large.py
-	python tidy_phrases_dict.py
+gen_phrases_dict: sync_submodule
+	python gen_phrases_dict.py phrase-pinyin-data/pinyin.txt pypinyin/legacy/phrases_dict.py
+	$(MAKE) to_json source=pypinyin/legacy/phrases_dict.py var=phrases_dict dst=pypinyin/phrases_dict.json
+
+
+.PHONY: to_json
+to_json:
+	python -c 'import json; exec(open("$(source)").read()); json.dump($(var), open("$(dst)", "w"), ensure_ascii=False, sort_keys=True, indent="")'
+
+.PHONY: sync_submodule
+sync_submodule:
+	git submodule init
+	git submodule update
 
 .PHONY: lint
 lint:

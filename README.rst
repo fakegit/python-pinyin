@@ -6,13 +6,13 @@
 
 将汉字转为拼音。可以用于汉字注音、排序、检索(`Russian translation`_) 。
 
-基于 `hotoo/pinyin <https://github.com/hotoo/pinyin>`__ 开发。
+最初版本的代码参考了 `hotoo/pinyin <https://github.com/hotoo/pinyin>`__ 的实现。
 
-* Documentation: http://pypinyin.rtfd.io/
+* Documentation: https://pypinyin.readthedocs.io/
 * GitHub: https://github.com/mozillazg/python-pinyin
 * License: MIT license
 * PyPI: https://pypi.org/project/pypinyin
-* Python version: 2.7, pypy, pypy3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10
+* Python version: 2.7, pypy3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, 3.14, 3.15
 
 .. contents::
 
@@ -31,13 +31,17 @@
 
 .. code-block:: bash
 
-    $ pip install pypinyin
+    pip install pypinyin
+
+使用 `uv` 安装：
+
+.. code-block:: bash
+
+    uv add pypinyin
 
 
 使用示例
 --------
-
-Python 3(Python 2 下把 ``'中心'`` 替换为 ``u'中心'`` 即可):
 
 .. code-block:: python
 
@@ -72,6 +76,7 @@ Python 3(Python 2 下把 ``'中心'`` 替换为 ``u'中心'`` 即可):
 * 默认情况下拼音结果不会标明哪个韵母是轻声，轻声的韵母没有声调或数字标识（可以通过参数 ``neutral_tone_with_five=True`` 开启使用 ``5`` 标识轻声 ）。
 * 默认情况下无声调相关拼音风格下的结果会使用 ``v`` 表示 ``ü`` （可以通过参数 ``v_to_u=True`` 开启使用 ``ü`` 代替 ``v`` ）。
 * 默认情况下会原样输出没有拼音的字符（自定义处理没有拼音的字符的方法见 `文档 <https://pypinyin.readthedocs.io/zh_CN/master/usage.html#handle-no-pinyin>`__ ）。
+* ``嗯`` 的拼音并不是大部分人以为的 ``en`` 以及存在既没有声母也没有韵母的拼音，详见下方 FAQ 中的说明。
 
 命令行工具：
 
@@ -79,13 +84,15 @@ Python 3(Python 2 下把 ``'中心'`` 替换为 ``u'中心'`` 即可):
 
     $ pypinyin 音乐
     yīn yuè
-    $ pypinyin -h
+
+    $ python -m pypinyin.tools.toneconvert to-tone 'zhong4 xin1'
+    zhòng xīn
 
 
 文档
 --------
 
-详细文档请访问：http://pypinyin.rtfd.io/ 。
+详细文档请访问：https://pypinyin.readthedocs.io/。
 
 项目代码开发方面的问题可以看看 `开发文档`_ 。
 
@@ -96,10 +103,10 @@ FAQ
 拼音有误？
 +++++++++++++++++++++++++++++
 
-可以通过自定义词组拼音库或者单字拼音库的方式修正拼音结果，
-也可以使用 `pypinyin-dict <https://github.com/mozillazg/pypinyin-dict>`__ 项目提供的自定义拼音库来纠正结果。
-详见 `文档 <https://pypinyin.readthedocs.io/zh_CN/master/usage.html#custom-dict>`__ 。
+可以通过下面的方法提高拼音准确性：
 
+* 可以通过自定义词组拼音库或者单字拼音库的方式修正拼音结果，
+  详见 `文档 <https://pypinyin.readthedocs.io/zh_CN/master/usage.html#custom-dict>`__ 。
 
 .. code-block:: python
 
@@ -109,17 +116,20 @@ FAQ
 
     >> load_single_dict({ord('还'): 'hái,huán'})  # 调整 "还" 字的拼音顺序或覆盖默认拼音
 
+* 也可以使用 `pypinyin-dict <https://github.com/mozillazg/pypinyin-dict>`__ 项目提供的自定义拼音库来纠正结果。
+
+.. code-block:: python
+
     # 使用 phrase-pinyin-data 项目中 cc_cedict.txt 文件中的拼音数据优化结果
     >>> from pypinyin_dict.phrase_pinyin_data import cc_cedict
     >>> cc_cedict.load()
 
-    # 使用 pinyin-data 项目中 cc_cedict.txt 文件中的拼音数据优化结果
+    # 使用 pinyin-data 项目中 kXHC1983.txt 文件中的拼音数据优化结果
     >>> from pypinyin_dict.pinyin_data import kxhc1983
     >>> kxhc1983.load()
 
-
-如果是分词导致的拼音有误的话，可以先使用其他的分词模块对数据进行分词处理，
-然后将分词后的词组结果列表作为函数的参数即可:
+* 如果是分词导致的拼音有误的话，可以先使用其他的分词模块对数据进行分词处理，
+  然后将分词后的词组结果列表作为函数的参数即可:
 
 .. code-block:: python
 
@@ -127,6 +137,8 @@ FAQ
     >>> #或者基于 phrases_dict.py 里的词语数据使用其他分词算法分词
     >>> words = list(jieba.cut('每股24.67美元的确定性协议'))
     >>> pinyin(words)
+
+* 如果你希望能通过训练模型的方式提高拼音准确性的话，可以看一下 `pypinyin-g2pW <https://github.com/mozillazg/pypinyin-g2pW>`__ 这个项目。
 
 
 为什么没有 y, w, yu 几个声母？
@@ -166,7 +178,41 @@ y，w，ü (yu) 都不是声母。
 
 详见 `strict 参数的影响`_ 。
 
-如何减少内存占用
+存在既没有声母也没有韵母的拼音？
++++++++++++++++++++++++++++++++++
+
+是的，``strict=True`` 模式下存在极少数既没有声母也没有韵母的拼音。
+比如下面这些拼音（来自汉字 ``嗯``、``呒``、``呣``、``唔``）::
+
+    ń ńg ňg ǹg ň ǹ m̄ ḿ m̀
+
+尤其需要注意的是 ``嗯`` 的所有拼音都既没有声母也没有韵母，``呣`` 的默认拼音既没有声母也没有韵母。
+详见 `#109`_ `#259`_ `#284`_ 。
+
+
+如何将某一风格的拼音转换为其他风格的拼音？
+++++++++++++++++++++++++++++++++++++++++++++
+
+可以通过 ``pypinyin.contrib.tone_convert`` 模块提供的辅助函数对标准拼音进行转换，得到不同风格的拼音。
+比如将 ``zhōng`` 转换为 ``zhong``，或者获取拼音中的声母或韵母数据：
+
+.. code-block:: python
+
+    >>> from pypinyin.contrib.tone_convert import to_normal, to_tone, to_initials, to_finals
+    >>> to_normal('zhōng')
+    'zhong'
+    >>> to_tone('zhong1')
+    'zhōng'
+    >>> to_initials('zhōng')
+    'zh'
+    >>> to_finals('zhōng')
+    'ong'
+
+更多拼音转换的辅助函数，详见 ``pypinyin.contrib.tone_convert`` 模块的
+`文档 <https://pypinyin.readthedocs.io/zh_CN/master/contrib.html#tone-convert>`__ 。
+
+
+如何减少内存占用？
 ++++++++++++++++++++
 
 如果对拼音的准确性不是特别在意的话，可以通过设置环境变量 ``PYPINYIN_NO_PHRASES``
@@ -196,11 +242,15 @@ Related Projects
 * `hotoo/pinyin`__: 汉字拼音转换工具 Node.js/JavaScript 版。
 * `mozillazg/go-pinyin`__: 汉字拼音转换工具 Go 版。
 * `mozillazg/rust-pinyin`__: 汉字拼音转换工具 Rust 版。
+* `wolfgitpr/cpp-pinyin`__: 汉字拼音转换工具 c++ 版。
+* `wolfgitpr/csharp-pinyin`__: 汉字拼音转换工具 c# 版。
 
 
 __ https://github.com/hotoo/pinyin
 __ https://github.com/mozillazg/go-pinyin
 __ https://github.com/mozillazg/rust-pinyin
+__ https://github.com/wolfgitpr/cpp-pinyin
+__ https://github.com/wolfgitpr/csharp-pinyin
 
 
 .. |Build| image:: https://img.shields.io/circleci/project/github/mozillazg/python-pinyin/master.svg
@@ -222,3 +272,6 @@ __ https://github.com/mozillazg/rust-pinyin
 .. _pinyin-data: https://github.com/mozillazg/pinyin-data
 .. _phrase-pinyin-data: https://github.com/mozillazg/phrase-pinyin-data
 .. _开发文档: https://pypinyin.readthedocs.io/zh_CN/develop/develop.html
+.. _#109: https://github.com/mozillazg/python-pinyin/issues/109
+.. _#259: https://github.com/mozillazg/python-pinyin/issues/259
+.. _#284: https://github.com/mozillazg/python-pinyin/issues/284

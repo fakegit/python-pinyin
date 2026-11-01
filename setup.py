@@ -17,6 +17,8 @@ packages = [
     'pypinyin.contrib',
     'pypinyin.seg',
     'pypinyin.style',
+    'pypinyin.tools',
+    'pypinyin.__pyinstaller',
 ]
 
 requirements = []
@@ -76,6 +78,9 @@ setup(
         'console_scripts': [
             'pypinyin = pypinyin.__main__:main',
         ],
+        'pyinstaller40': [
+            'hook-dirs = pypinyin.__pyinstaller:get_hook_dirs'
+        ],
     },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -93,6 +98,11 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
+        'Programming Language :: Python :: 3.15',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Utilities',

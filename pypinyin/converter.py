@@ -12,6 +12,7 @@ from pypinyin.constants import (
 from pypinyin.contrib.uv import V2UMixin
 from pypinyin.contrib.neutral_tone import NeutralToneWith5Mixin
 from pypinyin.contrib.tone_sandhi import ToneSandhiMixin
+from pypinyin.exceptions import PinyinNotFoundException
 from pypinyin.utils import _remove_dup_and_empty
 from pypinyin.style import auto_discover
 from pypinyin.style import convert as convert_style
@@ -38,7 +39,7 @@ class DefaultConverter(Converter):
         :param style: 拼音风格
         :param heteronym: 是否启用多音字
         :type heteronym: bool
-        :param errors: 如果处理没有拼音的字符
+        :param errors: 如何处理没有拼音的字符
         :param strict: 只获取声母或只获取韵母相关拼音风格的返回结果
                        是否严格遵照《汉语拼音方案》来处理声母和韵母，
                        详见 :ref:`strict`
@@ -52,12 +53,19 @@ class DefaultConverter(Converter):
         if RE_HANS.match(words):
             pys = self._phrase_pinyin(words, style=style, heteronym=heteronym,
                                       errors=errors, strict=strict)
-            return _remove_dup_and_empty(pys)
+            post_data = self.post_pinyin(words, heteronym, pys)
+            if post_data is not None:
+                pys = post_data
 
-        py = self.handle_nopinyin(words, style=style, errors=errors,
-                                  heteronym=heteronym, strict=strict)
-        if py:
-            pys.extend(py)
+            pys = self.convert_styles(
+                pys, words, style, heteronym, errors, strict)
+
+        else:
+            py = self.handle_nopinyin(words, style=style, errors=errors,
+                                      heteronym=heteronym, strict=strict)
+            if py:
+                pys.extend(py)
+
         return _remove_dup_and_empty(pys)
 
     def pre_convert_style(self, han, orig_pinyin, style, strict, **kwargs):
@@ -84,7 +92,7 @@ class DefaultConverter(Converter):
         转换风格前会调用 ``pre_convert_style`` 方法，
         转换后会调用 ``post_convert_style`` 方法。
 
-        :param han: 要处理的汉字
+        :param han: 要处理的单个汉字
         :param orig_pinyin: 汉字对应的原始带声调拼音
         :param style: 拼音风格
         :param strict: 只获取声母或只获取韵母相关拼音风格的返回结果
@@ -251,10 +259,11 @@ class DefaultConverter(Converter):
                 py = self._single_pinyin(han, style, heteronym, errors, strict)
                 pinyin_list.extend(py)
 
-        post_data = self.post_pinyin(phrase, heteronym, pinyin_list)
-        if post_data is not None:
-            pinyin_list = post_data
+        return pinyin_list
 
+    def convert_styles(self, pinyin_list, phrase, style, heteronym, errors,
+                       strict, **kwargs):
+        """转换多个汉字的拼音结果的风格"""
         for idx, item in enumerate(pinyin_list):
             han = phrase[idx]
             if heteronym:
@@ -296,6 +305,10 @@ class DefaultConverter(Converter):
 
     def _convert_style(self, han, pinyin, style, strict, default,
                        **kwargs):
+        if not kwargs:
+            kwargs = {}
+        kwargs['han'] = han
+
         return convert_style(pinyin, style, strict, default=default, **kwargs)
 
     def _convert_nopinyin_chars(self, chars, style, heteronym, errors, strict):
@@ -309,6 +322,8 @@ class DefaultConverter(Converter):
             return chars
         elif errors == 'ignore':
             return None
+        elif errors == 'exception':
+            raise PinyinNotFoundException(chars)
         elif errors == 'replace':
             if len(chars) > 1:
                 return ''.join(text_type('%x' % ord(x)) for x in chars)

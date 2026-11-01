@@ -16,6 +16,9 @@ def convert(pinyin, style, strict, default=None, **kwargs):
                    详见 :ref:`strict`
     :type strict: bool
     :param default: 拼音风格对应的实现不存在时返回的默认值
+    :param kwargs: 兼容后续可能会新增的关键字参数。当前包含如下关键字参数:
+                   ``han``: 当前拼音对应的原始汉字。
+
     :return: 按照拼音风格进行处理过后的拼音字符串
     :rtype: unicode
     """
@@ -25,7 +28,13 @@ def convert(pinyin, style, strict, default=None, **kwargs):
 
 
 def register(style, func=None):
-    """注册一个拼音风格实现
+    """注册一个拼音风格实现。
+    自定义的函数应当使用 ``**kwargs`` 来兼容后续可能会新增的关键字参数，
+    当前默认会传递如下参数：
+
+    * ``pinyin``: 原始有声调的单个拼音
+    * ``strict``: 是否开启 strict 模式
+    * ``han``: 当前拼音对应的原始汉字
 
     ::
 
@@ -61,4 +70,6 @@ def auto_discover():
         cyrillic,
         wadegiles,
         others,
+        gwoyeu,
+        braille_mainland,
     )
